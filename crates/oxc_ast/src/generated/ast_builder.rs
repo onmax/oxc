@@ -1258,10 +1258,12 @@ impl<'a> AstBuilder<'a> {
     /// * `span`: The [`Span`] covering this node
     /// * `name`: The name of the identifier being referenced.
     #[inline]
-    pub fn identifier_reference<A1>(self, span: Span, name: A1) -> IdentifierReference<'a>
+    pub fn identifier_reference<A1>(mut self, span: Span, name: A1) -> IdentifierReference<'a>
     where
         A1: Into<Atom<'a>>,
     {
+        self.nodes += 1u32;
+        self.references += 1u32;
         IdentifierReference { span, name: name.into(), reference_id: Default::default() }
     }
 
@@ -1296,7 +1298,7 @@ impl<'a> AstBuilder<'a> {
     /// * `reference_id`: Reference ID
     #[inline]
     pub fn identifier_reference_with_reference_id<A1>(
-        self,
+        mut self,
         span: Span,
         name: A1,
         reference_id: ReferenceId,
@@ -1304,6 +1306,8 @@ impl<'a> AstBuilder<'a> {
     where
         A1: Into<Atom<'a>>,
     {
+        self.nodes += 1u32;
+        self.references += 1u32;
         IdentifierReference { span, name: name.into(), reference_id: Cell::new(Some(reference_id)) }
     }
 
@@ -1341,10 +1345,12 @@ impl<'a> AstBuilder<'a> {
     /// * `span`: The [`Span`] covering this node
     /// * `name`: The identifier name being bound.
     #[inline]
-    pub fn binding_identifier<A1>(self, span: Span, name: A1) -> BindingIdentifier<'a>
+    pub fn binding_identifier<A1>(mut self, span: Span, name: A1) -> BindingIdentifier<'a>
     where
         A1: Into<Atom<'a>>,
     {
+        self.nodes += 1u32;
+        self.symbols += 1u32;
         BindingIdentifier { span, name: name.into(), symbol_id: Default::default() }
     }
 
@@ -1379,7 +1385,7 @@ impl<'a> AstBuilder<'a> {
     /// * `symbol_id`: Unique identifier for this binding.
     #[inline]
     pub fn binding_identifier_with_symbol_id<A1>(
-        self,
+        mut self,
         span: Span,
         name: A1,
         symbol_id: SymbolId,
@@ -1387,6 +1393,8 @@ impl<'a> AstBuilder<'a> {
     where
         A1: Into<Atom<'a>>,
     {
+        self.nodes += 1u32;
+        self.symbols += 1u32;
         BindingIdentifier { span, name: name.into(), symbol_id: Cell::new(Some(symbol_id)) }
     }
 
@@ -8572,7 +8580,8 @@ impl<'a> AstBuilder<'a> {
     /// * `span`: Node location in source code
     /// * `value`: The boolean value itself
     #[inline]
-    pub fn boolean_literal(self, span: Span, value: bool) -> BooleanLiteral {
+    pub fn boolean_literal(mut self, span: Span, value: bool) -> BooleanLiteral {
+        self.nodes += 1u32;
         BooleanLiteral { span, value }
     }
 

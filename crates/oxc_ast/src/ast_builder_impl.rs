@@ -33,20 +33,52 @@ impl<'a> AllocatorAccessor<'a> for AstBuilder<'a> {
 pub struct AstBuilder<'a> {
     /// The memory allocator used to allocate AST nodes in the arena.
     pub allocator: &'a Allocator,
+    /// Number of nodes created by this builder. This may overcount.
+    pub nodes: u32,
+    /// Number of nodes created that may create new scopes. This may overcount.
+    pub scopes: u32,
+    /// Number of symbols created by this builder. This may overcount.
+    pub symbols: u32,
+    /// Number of references created by this builder. This may overcount.
+    pub references: u32,
 }
 
 impl<'a> AstBuilder<'a> {
     /// Create a new AST builder that will allocate nodes in the given allocator.
     #[inline]
     pub fn new(allocator: &'a Allocator) -> Self {
-        Self { allocator }
+        Self { allocator, nodes: 0, scopes: 0, symbols: 0, references: 0 }
     }
 
     /// Create [`CommentNodeId`] for an AST node.
-    #[expect(dead_code, clippy::unused_self, clippy::trivially_copy_pass_by_ref)]
+    #[expect(dead_code, clippy::unused_self)]
     pub(crate) fn get_comment_node_id(&self) -> CommentNodeId {
         // TODO: Generate a real ID
         CommentNodeId::DUMMY
+    }
+
+    /// Get the number of nodes created by this builder.
+    #[inline]
+    pub fn get_node_count(&self) -> u32 {
+        self.nodes
+    }
+
+    /// Get the number of scopes created by this builder.
+    #[inline]
+    pub fn get_scope_count(&self) -> u32 {
+        self.scopes
+    }
+
+    /// Get the number of symbols created by this builder.
+    #[inline]
+    pub fn get_symbol_count(&self) -> u32 {
+        self.symbols
+    }
+
+    /// Get the number of references created by this builder.
+    #[inline]
+    pub fn get_reference_count(&self) -> u32 {
+        self.references
     }
 
     /// Move a value into the memory arena.

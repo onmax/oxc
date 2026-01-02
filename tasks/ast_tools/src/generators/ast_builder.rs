@@ -262,12 +262,20 @@ fn generate_builder_methods_for_struct_impl(
 
     let params_docs = generate_doc_comment_for_params(params);
 
+    let stats = generate_stats_for_struct(struct_def);
+    let mut_self = if stats.is_empty() {
+        quote! {}
+    } else {
+        quote! { mut }
+    };
+
     let method = quote! {
         ///@@line_break
         #fn_docs
         #params_docs
         #[inline]
-        pub fn #fn_name #generic_params (self, #fn_params) -> #struct_ty #where_clause {
+        pub fn #fn_name #generic_params (#mut_self self, #fn_params) -> #struct_ty #where_clause {
+            #stats
             #struct_ident { #fields }
         }
     };
@@ -677,6 +685,48 @@ fn generate_doc_comment_for_params(params: &[Param]) -> TokenStream {
         ///
         /// ## Parameters
         #(#lines)*
+    }
+}
+
+fn generate_stats_for_struct(struct_def: &StructDef) -> TokenStream {
+    let (nodes, scopes, symbols, references) = estimate_stats_for_ast_node(struct_def);
+
+    let nodes = if nodes > 0 {
+        quote! { self.nodes += #nodes; }
+    } else {
+        quote! {}
+    };
+    let scopes = if scopes > 0 {
+        quote! { self.scopes += #scopes; }
+    } else {
+        quote! {}
+    };
+    let symbols = if symbols > 0 {
+        quote! { self.symbols += #symbols; }
+    } else {
+        quote! {}
+    };
+    let references = if references > 0 {
+        quote! { self.references += #references; }
+    } else {
+        quote! {}
+    };
+
+    quote! {
+        #nodes
+        #scopes
+        #symbols
+        #references
+    }
+}
+
+/// Returns estimated (nodes, scopes, symbols, references) for an AST node.
+fn estimate_stats_for_ast_node(struct_def: &StructDef) -> (u32, u32, u32, u32) {
+    match struct_def.name() {
+        "BooleanLiteral" => (1, 0, 0, 0),
+        "IdentifierReference" => (1, 0, 0, 1),
+        "BindingIdentifier" => (1, 0, 1, 0),
+        _ => (0, 0, 0, 0),
     }
 }
 
